@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DX Rating Suggestion Viewer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        header {
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .control-panel {
+            display: flex;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.6);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            align-items: center;
+            gap: 15px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        label {
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #fdbb2d;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .rating-value {
+            font-size: 1rem;
+            font-weight: bold;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .file-info {
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .frame-container {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+
+        footer {
+            padding: 5px 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>DX Rating Suggestion Viewer</h1>
+            <p class="subtitle">Slide to select your DX rating</p>
+        </header>
+
+        <div class="control-panel">
+            <div class="slider-container">
+                <label for="rating-slider">Rating:</label>
+                <input type="range" id="rating-slider" min="50" max="164" value="75" step="1">
+                <div class="rating-value" id="rating-display">7500</div>
+            </div>
+
+            <div class="file-info">
+                File: <span id="file-name">suggestion-07500.html</span>
+            </div>
+        </div>
+
+        <div class="frame-container">
+            <iframe id="suggestion-frame" src="suggestion-07500.html" title="DX Rating Suggestion"></iframe>
+        </div>
+
+        <footer>
+            <p>Rating is rounded down to nearest 100. Files: suggestion-05000.html to suggestion-16000.html</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ratingSlider = document.getElementById('rating-slider');
+            const ratingDisplay = document.getElementById('rating-display');
+            const suggestionFrame = document.getElementById('suggestion-frame');
+            const fileName = document.getElementById('file-name');
+
+            // Update display and load suggestion when slider changes
+            ratingSlider.addEventListener('input', function () {
+                const rating = parseInt(ratingSlider.value) * 100;
+                ratingDisplay.textContent = rating;
+                loadSuggestion(rating);
+            });
+
+            function loadSuggestion(rating) {
+                // Calculate the file number using the rounding logic
+                const roundedRating = Math.floor(rating / 100) * 100;
+
+                // Format the number to 5 digits with leading zeros
+                const formattedRating = roundedRating.toString().padStart(5, '0');
+
+                // Construct the file path
+                const filePath = `suggestion-${formattedRating}.html`;
+                fileName.textContent = filePath;
+
+                // Update the iframe source
+                suggestionFrame.src = filePath;
+            }
+        });
+    </script>
+</body>
+
+</html>
