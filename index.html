@@ -85,33 +85,74 @@
         .rating-value {
             font-size: 1rem;
             font-weight: bold;
-            min-width: 60px;
+            min-width: 70px;
             text-align: center;
         }
 
-        .file-info {
-            font-size: 0.9rem;
-            white-space: nowrap;
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            opacity: 0.8;
         }
 
-        .frame-container {
+        .table-container {
             flex: 1;
-            overflow: hidden;
+            overflow: auto;
+            padding: 10px;
         }
 
-        iframe {
+        .styled-table {
             width: 100%;
-            height: 100%;
-            border: none;
-            background: white;
+            border-collapse: separate;
+            border-spacing: 2px;
+            font-size: 1.2rem;
+            min-width: 800px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .bold-text {
+            color: white;
+            font-weight: bold;
+            text-shadow: 0px 0px 5px #000;
+        }
+
+        .styled-table th {
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.6);
+            position: sticky;
+            top: 0;
+        }
+
+        .styled-table td {
+            padding: 8px;
+            text-align: center;
+        }
+
+        .styled-table img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .music-info {
+            line-height: 1.4;
+        }
+
+        .music-info small {
+            display: block;
+            font-size: 0.8em;
+            opacity: 0.9;
         }
 
         footer {
-            padding: 5px 15px;
+            padding: 8px 15px;
             background: rgba(0, 0, 0, 0.8);
             border-top: 1px solid rgba(255, 255, 255, 0.2);
             font-size: 0.8rem;
             opacity: 0.7;
+            text-align: center;
         }
     </style>
 </head>
@@ -120,58 +161,116 @@
     <div class="container">
         <header>
             <h1>DX Rating Suggestion Viewer</h1>
-            <p class="subtitle">Slide to select your DX rating</p>
+            <p class="subtitle">Slide to select your current DX rating</p>
         </header>
 
         <div class="control-panel">
             <div class="slider-container">
                 <label for="rating-slider">Rating:</label>
-                <input type="range" id="rating-slider" min="50" max="164" value="75" step="1">
-                <div class="rating-value" id="rating-display">7500</div>
-            </div>
-
-            <div class="file-info">
-                File: <span id="file-name">suggestion-07500.html</span>
+                <input type="range" id="rating-slider" min="50" max="164" value="150" step="1">
+                <div class="rating-value" id="rating-display">15000</div>
             </div>
         </div>
 
-        <div class="frame-container">
-            <iframe id="suggestion-frame" src="suggestion-07500.html" title="DX Rating Suggestion"></iframe>
+        <div class="table-container" id="table-container">
+            <div class="loading">Loading suggestions from data.json...</div>
         </div>
 
         <footer>
-            <p>Rating is rounded down to nearest 100. Files: suggestion-05000.html to suggestion-16000.html</p>
+            <p>Rating is rounded down to nearest 100. Data loaded from /data.json</p>
         </footer>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const ratingSlider = document.getElementById('rating-slider');
-            const ratingDisplay = document.getElementById('rating-display');
-            const suggestionFrame = document.getElementById('suggestion-frame');
-            const fileName = document.getElementById('file-name');
+        const tableContainer = document.getElementById('table-container');
+        const ratingSlider = document.getElementById('rating-slider');
+        const ratingDisplay = document.getElementById('rating-display');
 
-            // Update display and load suggestion when slider changes
-            ratingSlider.addEventListener('input', function () {
-                const rating = parseInt(ratingSlider.value) * 100;
-                ratingDisplay.textContent = rating;
-                loadSuggestion(rating);
+        let allSuggestions = null; // Will hold the loaded JSON
+        let currentKey = '15000';
+
+        // Fetch data.json once on page load
+        fetch('./data.json')
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to load data.json');
+                return response.json();
+            })
+            .then(data => {
+                allSuggestions = data;
+                renderTable(currentKey); // Initial render
+            })
+            .catch(err => {
+                tableContainer.innerHTML = `<p style="text-align:center; color:#ff8888; padding:40px;">
+                    Error loading data.json: ${err.message}<br>
+                    Make sure data.json is in the same directory and accessible.
+                </p>`;
             });
 
-            function loadSuggestion(rating) {
-                // Calculate the file number using the rounding logic
-                const roundedRating = Math.floor(rating / 100) * 100;
-
-                // Format the number to 5 digits with leading zeros
-                const formattedRating = roundedRating.toString().padStart(5, '0');
-
-                // Construct the file path
-                const filePath = `suggestion-${formattedRating}.html`;
-                fileName.textContent = filePath;
-
-                // Update the iframe source
-                suggestionFrame.src = filePath;
+        function renderTable(ratingKey) {
+            if (!allSuggestions) {
+                tableContainer.innerHTML = '<div class="loading">Loading data...</div>';
+                return;
             }
+
+            const suggestion = allSuggestions[ratingKey];
+            if (!suggestion || !suggestion.data || suggestion.data.length === 0) {
+                tableContainer.innerHTML = `<p style="text-align:center; padding:40px;">
+                    No suggestions available for rating ${ratingKey}.
+                </p>`;
+                return;
+            }
+
+            let rows = '';
+            for (const item of suggestion.data) {
+                const search_uri = `https://search.bilibili.com/all?keyword=maimai%20${encodeURIComponent(item.level)}%20AP%20${encodeURIComponent(item.music_title)}`;
+                rows += `
+                    <tr class="bold-text" style="background-color: ${item.color};">
+                        <td>
+                            <a href="${search_uri}" target="_blank" rel="noopener noreferrer">
+                                <img loading="lazy" src="${item.cover_pic}" alt="${item.music_title}">
+                            </a>
+                        </td>
+                        <td class="music-info">
+                            <a href="${search_uri}" style="color: #FFF;" target="_blank" rel="noopener noreferrer">
+                                ${item.music_title}
+                            </a><br>
+                            <small>${item.hint}</small>
+                        </td>
+                        <td>${item.difficulty}</td>
+                        <td>${item.pass_rate}</td>
+                        <td>${item.passed_players}</td>
+                        <td>${item.nessacary}</td>
+                    </tr>`;
+            }
+
+            const tableHTML = `
+                <h2 style="text-align:center; padding:15px 0; margin-bottom:10px;">${suggestion.title || `${ratingKey} 上分推荐`}</h2>
+                <table class="styled-table">
+                    <thead>
+                        <tr>
+                            <th>cover</th>
+                            <th>music_title</th>
+                            <th>difficulty</th>
+                            <th>pass_rate</th>
+                            <th>pass_count</th>
+                            <th>nessacary</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
+
+            tableContainer.innerHTML = tableHTML;
+        }
+
+        // Slider handler
+        ratingSlider.addEventListener('input', function () {
+            const baseRating = parseInt(this.value) * 100;
+            ratingDisplay.textContent = baseRating;
+
+            const rounded = Math.floor(baseRating / 100) * 100;
+            const key = rounded.toString();
+            currentKey = key;
+            renderTable(key);
         });
     </script>
 </body>
