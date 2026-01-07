@@ -161,13 +161,14 @@
     <div class="container">
         <header>
             <h1>DX Rating Suggestion Viewer</h1>
-            <p class="subtitle">Slide to select your current DX rating</p>
+            <p class="subtitle"><a style="color: #FFF;" href="./index.html?sortByDifficulty=0">Skip Difficulty</a></p>
+            <p class="subtitle"><a style="color: #FFF;" href="./index.html?sortByDifficulty=1">Sort Difficulty</a></p>
         </header>
 
         <div class="control-panel">
             <div class="slider-container">
                 <label for="rating-slider">Rating:</label>
-                <input type="range" id="rating-slider" min="50" max="164" value="150" step="1">
+                <input type="range" id="rating-slider" min="10" max="164" value="150" step="1">
                 <div class="rating-value" id="rating-display">15000</div>
             </div>
         </div>
@@ -187,12 +188,21 @@
         const ratingDisplay = document.getElementById('rating-display');
 
         let allSuggestions = null; // Will hold the loaded JSON
-        let currentKey = '15000';
+        let currentKey = ratingSlider.value * 100;
+        ratingDisplay.textContent = currentKey;
+
+        let data_uri = "./data.json";
+
+        let params = new URLSearchParams(document.location.search);
+        let sort = params.get("sortByDifficulty");
+        if (sort === "1") {
+            data_uri = "./data_difficulty.json"
+        }
 
         // Fetch data.json once on page load
-        fetch('./data.json')
+        fetch(data_uri)
             .then(response => {
-                if (!response.ok) throw new Error('Failed to load data.json');
+                if (!response.ok) throw new Error('Failed to load data');
                 return response.json();
             })
             .then(data => {
@@ -201,8 +211,8 @@
             })
             .catch(err => {
                 tableContainer.innerHTML = `<p style="text-align:center; color:#ff8888; padding:40px;">
-                    Error loading data.json: ${err.message}<br>
-                    Make sure data.json is in the same directory and accessible.
+                    Error loading data: ${err.message}<br>
+                    Make sure data is in the same directory and accessible.
                 </p>`;
             });
 
@@ -266,11 +276,8 @@
         ratingSlider.addEventListener('input', function () {
             const baseRating = parseInt(this.value) * 100;
             ratingDisplay.textContent = baseRating;
-
-            const rounded = Math.floor(baseRating / 100) * 100;
-            const key = rounded.toString();
-            currentKey = key;
-            renderTable(key);
+            currentKey = baseRating;
+            renderTable(baseRating);
         });
     </script>
 </body>
