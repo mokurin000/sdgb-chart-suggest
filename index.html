@@ -189,7 +189,7 @@
 
         let allSuggestions = null; // Will hold the loaded JSON
         let currentKey = ratingSlider.value * 100;
-        ratingDisplay.textContent = ratingSlider.value * 2;
+        ratingDisplay.textContent = ratingSlider.value * 2 + 2;
 
         let data_uri = "./data.json";
 
@@ -254,7 +254,7 @@
             }
 
             const tableHTML = `
-                <h2 style="text-align:center; padding:15px 0; margin-bottom:10px;">${suggestion.title || `${ratingKey} 上分推荐`}</h2>
+                <h2 style="text-align:center; padding:15px 0; margin-bottom:10px;">${suggestion.title || `${ratingKey} -> ${ratingKey + 100} 上分推荐`}</h2>
                 <table class="styled-table">
                     <thead>
                         <tr>
@@ -274,7 +274,7 @@
 
         // Slider handler
         ratingSlider.addEventListener('input', function () {
-            ratingDisplay.textContent = this.value * 2;
+            ratingDisplay.textContent = this.value * 2 + 2;
 
             const baseRating = parseInt(this.value) * 100;
             currentKey = baseRating;
