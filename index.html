@@ -161,8 +161,8 @@
     <div class="container">
         <header>
             <h1>DX Rating Suggestion Viewer</h1>
-            <p class="subtitle"><a style="color: #FFF;" href="./index.html?sortByDifficulty=0">Skip Difficulty</a></p>
-            <p class="subtitle"><a style="color: #FFF;" href="./index.html?sortByDifficulty=1">Sort Difficulty</a></p>
+            <p class="subtitle"><a style="color: #FFF;" href="./index.html?sortByDifficulty=0">Skip Difficulty</a> | <a
+                    style="color: #FFF;" href="./index.html?sortByDifficulty=1">Sort Difficulty</a></p>
         </header>
 
         <div class="control-panel">
@@ -178,7 +178,7 @@
         </div>
 
         <footer>
-            <p>Rating is rounded down to nearest 100. Data loaded from /data.json</p>
+            <p>Total rating is rounded down to nearest 100. Data loaded from /data.json</p>
         </footer>
     </div>
 
@@ -189,7 +189,7 @@
 
         let allSuggestions = null; // Will hold the loaded JSON
         let currentKey = ratingSlider.value * 100;
-        ratingDisplay.textContent = currentKey;
+        ratingDisplay.textContent = ratingSlider.value * 2;
 
         let data_uri = "./data.json";
 
@@ -274,8 +274,9 @@
 
         // Slider handler
         ratingSlider.addEventListener('input', function () {
+            ratingDisplay.textContent = this.value * 2;
+
             const baseRating = parseInt(this.value) * 100;
-            ratingDisplay.textContent = baseRating;
             currentKey = baseRating;
             renderTable(baseRating);
         });
